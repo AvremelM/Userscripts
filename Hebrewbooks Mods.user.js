@@ -4,7 +4,7 @@
 // @match         http://beta.hebrewbooks.org/*
 // @author        HodofHod
 // @namespace     HodofHod
-// @version       0.0.1
+// @version       0.0.2
 // ==/UserScript==
 
 /*
@@ -12,10 +12,15 @@ Features:
     Adds download link (on hover) to books in search results
     Choose language. (Still in the works.)
     Tags on book pages are now clickable (at least the major ones)
-    Pager improvements
+    Automagically adds page anchors to HB Reader URLS. Share a direct link to any page!
+    Adds navigation bars to the HB Reader
+    Pagination UI improvements
     Fixes HB Reader slider issues
     Fixes Google Search slide issue
     Other small UI fixes
+    
+Issues:
+    Loading a reader url with a page anchor already attached, blocks OCR highlighting. 
 */
 
 function inject(f) {
@@ -31,42 +36,33 @@ inject(function cookies(){
             return unescape(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
         },
         setItem: function (sKey, sValue) {
-            if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
-                return false;
-            }
             document.cookie = escape(sKey) + "=" + escape(sValue) + "; expires=Fri, 31 Dec 9999 23:59:59 GMT; domain=hebrewbooks.org; path=/";
             return true;
         },
-        removeItem: function (sKey) {
-            if (!sKey || !this.hasItem(sKey)) { return false; }
-            document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=hebrewbooks.org; path=/";
-            return true;
-          },
-        hasItem: function (sKey) {
-            return (new RegExp("(?:^|;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
-        }
     };
-});    
+});
 
 
 function chooseLanguage(){
-    $('#pnlMenubar').after('<div style="float:right; margin-right:5px;">\
+    //Add the drop-down list
+    $('#pnlMenubar').after('<div style="position:absolute; margin-right:5px;">\
                                 <select id="language-select" style="width:auto;font-size:75%;">\
                                     <option value="default">עברית/English</option>\
                                     <option value="hebrew">עברית</option>\
                                     <option value="english">English</option>\
                                 </select>\
                             </div>');
-    lang = docCookies.getItem('language');                        
-    if (lang){
+    var lang = docCookies.getItem('language');                        
+    if (lang && lang !== ''){
         switchLang(lang);
         $('#language-select').val(lang);
     }
     $('#language-select').focus(function(){
         previous = $(this).val();
     }).change(function(e){
+        console.log($(this).val());
         if ($(this).val() == 'default'){
-            docCookies.removeItem('language');
+            docCookies.setItem('language', '')
         } else {
             docCookies.setItem('language', $(this).val());
         }
@@ -81,7 +77,7 @@ function chooseLanguage(){
     
 
     function switchLang(lang){
-        //Section 1: Most Headers
+        //Replace most headers
         var re = lang === 'english' ? /[\u0590-\u05FF]+/g : /[\w]+/g,
             els = {
                 '[href=home]'      : ['דף הבית', 'Home'],
@@ -99,14 +95,12 @@ function chooseLanguage(){
                 'div#results option[value=4]' : ['תאריך', 'Date']
                 };
         
-        if (/^\/$|^\/home($|.aspx)/.test(document.location.pathname)){
+        if (/^\/$|^\/home($|\.aspx)/.test(document.location.pathname)){
             //extra language changes on the home page.
-            var remove = RegExp($('#results.header').text().match(re).join('|'),'g');
-            $('#results.header').html($('#results.header').html().replace(remove, ''));
             $.extend(els, {
                     '.kbTitle'                                  : ['מקלדת וירטואלית', 'Virtual Keyboard'],
                     '#nrf'                                      : ['לא נמצאו תוצאות', 'No results found'],
-                    '.gsc-search-button:button'                 : ['חפש', 'Search'],
+                    '.gsc-search-button:button'                 : [ 'חפש', 'Search' ],
                     '.ibb:button:eq(0)'                         : ['ניקוי', 'Clear'],
                     '.ibb:button:eq(1)'                         : ['חיפוש', 'Search'],
                     '#poprecent :nth-child(1) .header'          : ['לומדים עכשיו', 'Being learned now'],
@@ -117,6 +111,7 @@ function chooseLanguage(){
                     '#legacyhbsearch table:last tr:eq(2) td:first'     : ['מחבר', 'Author']
                     });
         }
+        
         
         
         var text_index = lang === 'english' ? 1 : 0;
@@ -131,10 +126,14 @@ function chooseLanguage(){
                 $elem.css({'display':'flex','align-items':'center','font-size':'+=1px'});
             }
         });
+        //Results and sort
+        $('#results.header').contents(':eq(0)').replaceWith(lang === 'hebrew' ? 'תוצאות' : 'Results')
+        $('#results.header *:eq(0)').contents(':eq(0)').replaceWith(lang === 'hebrew' ? 'למיין לפי' : 'Sort By')
     }
 }
 
-function addDownLinks(){//Insert download links
+//#Insert download links
+function addDownLinks(){
     $('[ipu]').each(function(){
         $(this).parent()
                 .children(':last')
@@ -155,6 +154,9 @@ function addDownLinks(){//Insert download links
      );
 }
 
+//#Book's main page's show categorizing tags, but they're unclickable and so borderline useless.
+// This makes the most popular tags clickable, linking to their results pages. 
+// I could do the rest, but there are ~4530 tags, so....
 function linkTags(){
     var ids = ["2291", "1195", "4682", "1537", "2933", "3518", "1421", "2729", "1451", "4259", "3311", "1968", "4907", "2206", "3997", "2192", "1789", "4582", "3094", "671", "4656", "3124", "2733", "5093", "546", "1112", "1954", "3566", "530", "3679", "1845", "4811", "3720", "1833", "2656", "1241", "1145", "3342", "1728", "2494", "1332", "2285", "922", "2454", "1047", "4980", "5092", "1676", "4077", "923", "5075", "3380", "2426", "892", "921", "4608", "3756", "1373", "3754", "2725", "4256", "2755", "4636", "1832", "2610", "2283", "2099", "3560", "4710", "3317", "2632", "1291"],
         tags=['ירחון', 'גאונים', 'שו"ת', 'הלכה', 'מסכת', 'עה"ת', 'דרשות', 'מוסר', 'הגדה של פסח', 'ראשונים', 'סוגיות', 'חסידות', 'תולדות', 'יידיש', 'קבלה', 'יורה דעה', 'חבד', 'רמב"ם', 'משניות', 'אורח חיים', 'שבת', 'נ"ך', 'מועדים', 'English', 'אבן העזר', 'בראשית', 'חמש מגילות', 'על הש"ס', 'אבות', 'פולמוס', 'חושן משפט', 'שמות', 'פירוש', 'חומש', 'מדרש', 'גיטין', 'ברכות', 'סידור', 'ויקרא', 'לוח', 'דברים', 'ירושלמי', 'בבא מציעא', 'כתובות', 'במדבר', 'תלמוד בבלי', 'קובץ', 'השקפה', 'קידושין', 'בבא קמא', 'תרי"ג מצוות', 'סיפורים', 'כללים', 'ארץ ישראל', 'בבא בתרא', 'רש"י', 'פסחים', 'דינאב', 'פסח', 'מונקאטש', 'ראש השנה', 'מחזור', 'שבועות', 'חולין', 'מאמרים', 'ירושלים', 'יבמות', 'עירובין', 'שחיטה', 'סוכה', 'מגילה', 'גר"א'];
@@ -163,37 +165,81 @@ function linkTags(){
         tag = $(this).text();
         if (tags.indexOf(tag) === -1){return}
         $(this).html(
-            '<a href="'+
-            'http://beta.hebrewbooks.org/browse.aspx?req=tag&id='+
-            ids[tags.indexOf(tag)]+
-            '" style="text-decoration:none">'+
+            '<a href="http://beta.hebrewbooks.org/browse.aspx?req=tag&id='+
+            ids[tags.indexOf(tag)] + '" style="text-decoration:none">'+
             tag + '</a>'
         );
     });
 }
 
 function readerMods(){
+    if (ocrsearch !== '' && $('#markedpages > div').length == 0){
+        //doOcr(); //TODO: Fix HB ignoring OCR when page hash specified.
+    }
+    //#Fix a really annoying bug where the Reader slider seems to have a mind of it's own. 
+    // This is essentially HB's code, but they needed to pass 'true' to the stop() method.
     $('#slideout')
         .off()
         .hover(function () {
-              $(this).stop(true).animate({'right':'-2px'},300);
-          }, function () {
-              if(!$('#gripper').hasClass('pinned'))
-              $(this).stop(true).delay(1000).animate({'right':'-300px'},1000);
-          }
+                $(this).stop(true).animate({'right':'-2px'},300);
+            }, function () {
+                if(!$('#gripper').hasClass('pinned')){
+                    $(this).stop(true).delay(1000).animate({'right':'-300px'},1000);
+                }
+            }
         );
+        
+    //#Add the page hash (i.e., #p=p4) to the URL so people can share direct links to individual pages.
     function insertHash(){
         if (document.location.hash === ''){
             document.location.hash = '#p=' + $('.pg').attr('id');
         }
     }
-    $('#thumbstrip').click(insertHash);
+    $('#thumbstrip > div').click(function(){
+        //the setTimeout makes sure insertHash is run after the other handlers, which would remove the hash
+        setTimeout(function(){
+                    insertHash(); 
+                    addNavs();
+        }, 0);     
+    });
     insertHash();
+    
+    //#Add big navigation bars to either side of each page in HB Reader
+    function addNavs(){
+        var page = parseInt($('.pg').attr('id').slice(1)),
+            arrow = ($('.pg').height() / 2) + 'px',
+            nav_left  = '<a href="#" style="position: absolute; height: 100%; width: 40px; left: -41px;"  id="nav-left"  title="Next"><div style="z-index:-1;opacity:0; background-color: darkgray; width: 20px; border-top-left-radius: 7px;  border-bottom-left-radius: 7px;left: 60px; position: absolute;"><div style=" border-style: solid; border-color: transparent darkgrey; position: relative; left: -19px;"></div></div></a>'
+            nav_right = nav_left.replace(/left/g, 'right').replace('Next', 'Previous');
+            
+        $(nav_left).prependTo('.pg')
+                   .click(function(){
+                        $('#t'+(page+1)).click();
+                   }).find('div>div').css({'border-width':arrow+' 20px '+arrow+' 0'});
+        $(nav_right).appendTo('.pg')
+                    .click(function(){
+                        $('#t'+(page-1)).click();
+                    }).find('div>div').css({'border-width':arrow+' 0 '+arrow+' 20px'});
+        
+        $('#nav-right').hover(
+            function(){
+                $(this).children().stop(true).animate({right:'20px',opacity:1});
+            }, function(){
+                $(this).children().delay(500).animate({right:'60px'});
+        });
+        $('#nav-left').hover(
+            function(){
+                $(this).children().stop(true).animate({left:'20px',opacity:1});
+            }, function(){
+                $(this).children().delay(500).animate({left:'60px'});
+        });
+    }
+    addNavs();
 }
 
 
 
 function homeMods(){
+    //#Fix the google/hb search switcher so it transitions smoothly:
     //wrap the search table element, since jQuery can't slide those
     legacy = $('#legacyhbsearch').wrap('<div id="legacywrap">')
     $('#switcher')
@@ -220,8 +266,9 @@ function homeMods(){
 }           
 
 function generalMods(){
+    //#Highlight currently selected page number
     $('.page-numbers.current').css('background-color', '#F8E9C1');
-    
+    //#When there are a bunch of pages, they show up as 1,2,3 ... 14. This shows the intervening pages on hover
     $('#pgr > span:not(.current)').each(function () {
         var $elips = $(this),
             prev = parseInt($elips.prev().text()),
@@ -249,7 +296,8 @@ function generalMods(){
             $elips.delay(500).show(500);
         });
     });
-
+    //#This highlights the added page numbers when you hover over them. 
+    //For some reason, HB is using JS to set the background-color, when they should be using the CSS :hover selector.
     $('.hidden-pages span').hover(function(){
         $(this).css('background-color', 'rgb(255, 181, 102)');
     }, function(){
