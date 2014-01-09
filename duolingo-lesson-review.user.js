@@ -4,7 +4,7 @@
 // @match        http://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.4
+// @version      0.0.5
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -213,6 +213,9 @@ function init(){
             $('div.buttons').prepend(button.css('float','left'));
             finished = true;
             last_lesson_id = cur_lesson_id;
+            cur_lesson_id = 'end';
+            selected_lesson_id = 'end';
+            select_cell();//none
         }
         
         duo.SessionView.prototype.showFailView = function(){
@@ -238,24 +241,23 @@ function init(){
        
         $(document).on('click.hh', '#review_button', function(){
             if (failed){
-                cur_lesson_id = 'end';
                 save_lesson('end');
-                selected_lesson_id = 'end';
                 replace_lesson(last_lesson_id);
             }else{
                 last_lesson_id -= 1; //newNext() increments on the last one too, adjust for that.
-                cur_lesson_id = 'end';
-                selected_lesson_id = 'end';
                 replace_lesson(last_lesson_id);
             }
         });
         
         $(document).on('click.hh', '#prev-arrow, #next-arrow', function(){
             lesson_id = (this.id === 'prev-arrow') ? selected_lesson_id-1 : selected_lesson_id+1;
-            if (selected_lesson_id === 'end'){//end, probably
+            if (selected_lesson_id === 'end'){
                 $('#review_button').click();
+            }else if (!lessons[lesson_id] && cur_lesson_id === 'end'){
+                replace_lesson('end');
+            }else{
+                replace_lesson(lesson_id);
             }
-            replace_lesson(lesson_id);
         });
         
         function add_arrows(){
