@@ -4,15 +4,18 @@
 // @match        http://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.1
+// @version      0.0.4
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
 //I am not responsible for any damage done to your eyes, or the ears of those around you.
 
-//TODO: Add arrows on either side of the upper lesson elements?
-//      selected_lesson should have a border or something
-//      Lesson should turn red as soon as continue is enabled. Maybe override graded function to run red(), but graded doesn't work for audio;
+//TODO: First lesson cell should get selected (in lessons; practices does already)
+//      Lesson should turn red as soon as continue is enabled. 
+//          Maybe override graded function to run red(), but graded doesn't work for audio;
+//          This probably made sense when I wrote, but now I haven't got a clue.
+//      Inject a stylesheet and use classes instead of .css()
+//TOFIX: If you click on the discussion toggle and then on the backdrop while the discussions are still loading, the discussion will pop up without the modal when they load.
 
 function inject() { //Inject the script into the document
 	var script;
@@ -33,6 +36,7 @@ function init(){
     var origNext         = duo.SessionView.prototype.next,
         origShowFailView = duo.SessionView.prototype.showFailView,
         origShowEndView  = duo.SessionView.prototype.showEndView,
+        origRender       = duo.SessionView.prototype.render,
         origPushState    = window.history.pushState;
 
     if (/^\/practice|^\/skill\/.+/.test(window.location.pathname)){ //for the first time the script is loaded, check if we're already on a page.
@@ -46,14 +50,15 @@ function init(){
 
     function cleanup(){
         $(document).off('.hh'); //unbind any handlers from previous lessons.
-        duo.SessionView.prototype.next         = origNext;//remove overrides
+        duo.SessionView.prototype.next         = origNext; //remove overrides
         duo.SessionView.prototype.showFailView = origShowFailView;
         duo.SessionView.prototype.showEndView  = origShowEndView;
     }
 
     function main(){
-        cleanup();
         console.log('main');
+        cleanup();
+        add_arrows();
         
         var lessons = {},
             cur_lesson_id = 1,
@@ -62,7 +67,9 @@ function init(){
             failed = false,
             header, last_lesson_id,
             waiting_for_discussion_load = false;
-
+        
+        select_cell(selected_lesson_id);
+        
         function save_lesson(save_id){
             var app_class = $('#app').prop('class');
             lessons[save_id] = [$('#app>div:not(.player-header)').clone(), app_class];
@@ -77,8 +84,6 @@ function init(){
                 $('#app>div:not(.player-header)').remove();
             }
            
-            selected_lesson_id = replace_id;
-
             $('#app').append(lessons[replace_id][0]);
             $('#app').prop('class', lessons[replace_id][1]);
             bind_discussion_toggle();//TODO: Remove the other?
@@ -106,17 +111,30 @@ function init(){
                 }
             }else if (finished && !failed){//if switching to end of successful lesson, remove header.
                 $('#app>.player-header').detach();
-            }
+            }else{ $('.twipsy').hide(); }
             
-            $('.twipsy').hide();
+            selected_lesson_id = replace_id;
+            select_cell(selected_lesson_id);
+            activate_arrows();
         }
         
         function red(){//TODO: Integrate this somewhere.
             if ($('#app').hasClass('incorrect')){
                 $('#element-' + cur_lesson_id + '.done')
                     .css('background-image', '-webkit-linear-gradient(top, #EE6969, #FF0000)')
-                    .css('background-image', '-moz-linear-gradient(center top , #EE6969, #FF0000)');
+                    .css('background-image', '-moz-linear-gradient(center top , #EE6969, #FF0000)')
+                    .css({'border': '1px solid #950000', 'border-left':'none'});
             }
+        }
+        
+        function select_cell(cell_num){
+            $('#progress-bar [id^=element]').css({'box-shadow': '', 'border-right-width': '1px'});
+            $('#progress-bar #element-'+cell_num).css({'box-shadow': '1px 1px 3px black inset',
+                                                       'border-right-width': '0px'});
+            $('#element-'+cell_num+':first-child').css({'-webkit-border-radius': '9px 0 0 9px',
+                                                        'border-radius': '9px 0 0 9px'});
+            $('#element-'+cell_num+':last-child').css({'-webkit-border-radius': '0 9px 9px 0',
+                                                        'border-radius': '0 9px 9px 0'});                                         
         }
 
         function bind_discussion_toggle(){
@@ -130,13 +148,22 @@ function init(){
                 });
             });
         }
-        
+        //Hijack the render() function (it renders each problem, as well as the opening practice view)
+        duo.SessionView.prototype.render = function newRender(){
+            console.log('render');
+            if ($('#prev-arrow, #next-arrow').length !== 2){
+                add_arrows();
+            }
+            select_cell(selected_lesson_id);
+            activate_arrows();
+            return origRender.apply(this, arguments);
+        };
+
         //Hijack the function that switches lessons.
         duo.SessionView.prototype.next = function newNext(){
-            console.log(this.model.get('position'));
             if ($('#discussion-toggle').size() && !$("#discussion-modal").size()){
-                console.log('wait for discussions to finish loading');
                 waiting_for_discussion_load = true;
+                console.log('wait for discussions to finish loading');
             } else {
                 cur_lesson_id = (this.model.get('position') + 1); //0-indexed
                 save_lesson(cur_lesson_id);
@@ -176,7 +203,7 @@ function init(){
             }
         });
         
-        $(document).on('click.hh', '#resume_button', function(e){ 
+        $(document).on('click.hh', '#resume_button', function(){ 
             replace_lesson(cur_lesson_id); 
         });
         
@@ -192,13 +219,14 @@ function init(){
             red();
             if ($('#discussion-toggle').size() && !$("#discussion-modal").size()){
                 console.log('wait for discussions to finish loading');
-                waiting_for_discussion_load = true;
+                waiting_for_discussion_load = true;//TODO
             }
             save_lesson(cur_lesson_id);
             r = origShowFailView.apply(this, arguments);
             failed = true;
             finish();
             $('.close-fail').hide();
+            add_arrows();
             return r;
         };
         
@@ -209,14 +237,11 @@ function init(){
         };
        
         $(document).on('click.hh', '#review_button', function(){
-            console.log('review click');
-            //breaks the second time review is clicked.
             if (failed){
                 cur_lesson_id = 'end';
                 save_lesson('end');
                 selected_lesson_id = 'end';
                 replace_lesson(last_lesson_id);
-                
             }else{
                 last_lesson_id -= 1; //newNext() increments on the last one too, adjust for that.
                 cur_lesson_id = 'end';
@@ -224,6 +249,44 @@ function init(){
                 replace_lesson(last_lesson_id);
             }
         });
+        
+        $(document).on('click.hh', '#prev-arrow, #next-arrow', function(){
+            lesson_id = (this.id === 'prev-arrow') ? selected_lesson_id-1 : selected_lesson_id+1;
+            if (selected_lesson_id === 'end'){//end, probably
+                $('#review_button').click();
+            }
+            replace_lesson(lesson_id);
+        });
+        
+        function add_arrows(){
+            $('#prev-arrow, #next-arrow').remove();//precaution
+            arrow = $('<span></span>').css({
+                background: 'url("//d7mj4aqfscim2.cloudfront.net/images/sprite_mv_082bd900117422dec137f596afcc1708.png") no-repeat',
+                width: '24px', height: '18px', float: 'left', 'pointer-events':'none', 'background-position': '-323px -130px'
+            });
+
+            arrow.clone().attr('id', 'prev-arrow').css({margin: '22px -30px 0 5px',
+                     transform: 'rotate(-90deg)',
+                     '-webkit-transform': 'rotate(-90deg)'
+            }).insertBefore('#progress-bar');
+
+            arrow.clone().attr('id', 'next-arrow').css({margin: '22px 0 0 4px',
+                     transform: 'rotate(90deg)',
+                     '-webkit-transform': 'rotate(90deg)'
+            }).insertAfter('#progress-bar');
+            
+            activate_arrows();
+        }
+        
+        function activate_arrows(){
+            selected_lesson_id > 1 || selected_lesson_id === 'end' ? activate($('#prev-arrow')) : deactivate($('#prev-arrow'));
+            selected_lesson_id !== cur_lesson_id ? activate($('#next-arrow')) : deactivate($('#next-arrow'));
+            function activate($arrow){
+                $arrow.css({'background-position':'-323px -178px',cursor:'pointer','pointer-events':''});
+            }
+            function deactivate($arrow){
+                $arrow.css({'background-position':'-323px -130px',cursor:'initial','pointer-events':'none'});
+            }
+        }
     }
 }
-
