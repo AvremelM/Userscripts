@@ -4,7 +4,7 @@
 // @match        http://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.6
+// @version      0.0.7
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -39,7 +39,7 @@ function init(){
         origRender       = duo.SessionView.prototype.render,
         origPushState    = window.history.pushState;
 
-    if (/^\/practice|^\/skill\/.+/.test(window.location.pathname)){ //for the first time the script is loaded, check if we're already on a page.
+    if (/^\/practice|skill|word_practice\/.+/.test(window.location.pathname)){ //for the first time the script is loaded, check if we're already on a page.
         main();
     }
     window.history.pushState = function checkPage(a, b, c){  //Hijack the window's pusState so we know whenever duolingo navigates to a new page.
