@@ -4,7 +4,7 @@
 // @match        http://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.5
+// @version      0.0.6
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -43,7 +43,7 @@ function init(){
         main();
     }
     window.history.pushState = function checkPage(a, b, c){  //Hijack the window's pusState so we know whenever duolingo navigates to a new page.
-        /^\/practice|^\/skill\/.+/.test(c) ? main() : cleanup();
+        /^\/practice|skill|word_practice\/.+/.test(c) ? main() : cleanup();
         return origPushState.call(this, a, b, c);
     };
 
