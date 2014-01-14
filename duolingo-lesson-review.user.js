@@ -4,17 +4,18 @@
 // @match        http://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.7
+// @version      0.0.8
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
 //I am not responsible for any damage done to your eyes, or the ears of those around you.
 
-//TODO: First lesson cell should get selected (in lessons; practices does already)
+//TODO: First lesson cell should get selected (in lessons and word_practice; practices does already)
 //      Lesson should turn red as soon as continue is enabled. 
 //          Maybe override graded function to run red(), but graded doesn't work for audio;
 //          This probably made sense when I wrote, but now I haven't got a clue.
 //      Inject a stylesheet and use classes instead of .css()
+//      Programatically get the sprites.png location, in case duolingo moves it.
 //TOFIX: If you click on the discussion toggle and then on the backdrop while the discussions are still loading, the discussion will pop up without the modal when they load.
 
 function inject() { //Inject the script into the document
@@ -80,6 +81,8 @@ function init(){
             if (selected_lesson_id === replace_id){ return false; } //don't replace yourself with yourself.
             if (selected_lesson_id === cur_lesson_id || selected_lesson_id === 'end'){//if switching away from cur_lesson
                 lessons[cur_lesson_id] = [$('#app>div:not(.player-header)').detach(), $('#app').prop('class')];
+            }else if (lessons[replace_id] === undefined){
+                return false;
             }else{
                 $('#app>div:not(.player-header)').remove();
             }
@@ -205,6 +208,11 @@ function init(){
         
         $(document).on('click.hh', '#resume_button', function(){ 
             replace_lesson(cur_lesson_id); 
+            if (finished && ($('#end-carousel .left').length > 1 || !$('#end-carousel .active').length)){
+                $('#end-carousel .item').removeClass('active next left');
+                $('#end-carousel .item:eq(' +$('.dots .active').data('slide')+ ')').addClass('active')
+                $(".carousel").carousel("pause")
+            }
         });
         
         function finish(){
@@ -234,6 +242,7 @@ function init(){
         };
         
         duo.SessionView.prototype.showEndView = function(){
+            cur_lesson_id -= 1; //newNext() increments on the last one too, adjust for that.
             header = $('#app>.player-header').detach();//TODO: Improve?
             origShowEndView.apply(this, arguments);
             finish();
@@ -244,7 +253,6 @@ function init(){
                 save_lesson('end');
                 replace_lesson(last_lesson_id);
             }else{
-                last_lesson_id -= 1; //newNext() increments on the last one too, adjust for that.
                 replace_lesson(last_lesson_id);
             }
         });
@@ -270,12 +278,12 @@ function init(){
             arrow.clone().attr('id', 'prev-arrow').css({margin: '22px -30px 0 5px',
                      transform: 'rotate(-90deg)',
                      '-webkit-transform': 'rotate(-90deg)'
-            }).insertBefore('#progress-bar');
+            }).prependTo('#progress-bar');
 
             arrow.clone().attr('id', 'next-arrow').css({margin: '22px 0 0 4px',
                      transform: 'rotate(90deg)',
                      '-webkit-transform': 'rotate(90deg)'
-            }).insertAfter('#progress-bar');
+            }).appendTo('#progress-bar');
             
             activate_arrows();
         }
