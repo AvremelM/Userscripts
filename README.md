@@ -7,6 +7,7 @@ Userscripts
 
 * [Hebrewbooks Mods](https://github.com/HodofHod/Userscripts/raw/master/Hebrewbooks%20Mods.user.js)  
 * [Duolingo Lesson Review](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
+* [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
 
 ##Chrome
 
