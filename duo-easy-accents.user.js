@@ -7,10 +7,11 @@
 // ==/UserScript==
 
 
-//Disclaimer: Accents are a subset of diacritics, but it's the more commonly used term, so that's the script's title.
-//    Some languages have characters that can be accented in many different ways 
-//    (like the French 'e' or the Portuguese 'a'). While those letters are reachable by tapping ALT multiple times, 
-//    it may become unweildy and annoying. I am open to other suggestions.
+// Technically, these are accents, diacritics, and ligatures, 
+// but accents is the commonest of those terms so that's the script's title.
+// Some languages have characters that can be accented in many different ways 
+// (like the French 'e' or the Portuguese 'a'). While those letters are reachable by tapping ALT multiple times, 
+// it may become unweildy and annoying. I am open to other suggestions.
 
 //TODO: Add the rest of the languages from the incubator :)
 
