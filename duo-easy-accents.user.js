@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.1
+// @version      0.1.2
 // ==/UserScript==
 
 
@@ -91,7 +91,7 @@ function main(){
     });
 
 
-    $(document).on('keyup', '[lang=es]', function (e) {
+    $(document).on('keyup', '[lang][lang!=en]', function (e) {
         //If alt is unpressed, reset the last tapped key.
         if (e.which === 18) { last_press = []; }
     }); 
