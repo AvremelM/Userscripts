@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.9
+// @version      0.1.0
 // ==/UserScript==
 
 //NOTE: This release is to add basic support  for the new site design. 
@@ -43,6 +43,7 @@ function init(){
         origShowFailView = duo.SessionView.prototype.showFailView,
         origShowEndView  = duo.SessionView.prototype.showEndView,
         origRender       = duo.SessionView.prototype.render,
+        origTimesUp      = duo.TimedSessionView.prototype.timesUp,
         origPushState    = window.history.pushState;
 
     if (/^\/practice|skill|word_practice\/.+/.test(window.location.pathname)){ //for the first time the script is loaded, check if we're already on a page.
@@ -87,12 +88,12 @@ function init(){
             console.log('cur: ' + cur_lesson_id + ', old id: ' + selected_lesson_id + ', new id ' + replace_id);
             if (selected_lesson_id === replace_id){ return false; } //don't replace yourself with yourself.
             if (selected_lesson_id === cur_lesson_id || selected_lesson_id === 'end'){//if switching away from cur_lesson
-                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main').detach(), $('#discussion-modal-container').detach(), $('#app').prop('class')]
+                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main, #end-carousel').detach(), $('#discussion-modal-container').detach(), $('#app').prop('class')]
                                                   : [$('#app>div:not(.player-header)').detach(), $('#app').prop('class')];
             }else if (lessons[replace_id] === undefined){
                 return false;
             }else{
-                redesign ? $('.player-container>footer, .player-main, .discussion-modal-container').remove()
+                redesign ? $('.player-container>footer, .player-main, #end-carousel, .discussion-modal-container').remove()
                 		 : $('#app>div:not(.player-header)').remove();
             }
            
@@ -153,15 +154,6 @@ function init(){
                                                   'border-radius': '0 9px 9px 0'});           
         }
 
-        function bind_discussion_toggle(){
-            $('#discussion-toggle').on('click', function(e){
-                e.stopImmediatePropagation();
-                $('#discussion-modal').modal('show');
-                $('.close-modal-background, .modal-backdrop, .player-discussion>.close').on('click', function(){
-                    $('#discussion-modal').modal('hide');
-                });
-            });
-        }
         //Hijack the render() function (it renders each problem, as well as the opening practice view)
         duo.SessionView.prototype.render = function newRender(){
             console.log('render');
@@ -188,11 +180,23 @@ function init(){
             }
         };
         
+        
+        function bind_discussion_toggle(){
+            $('#discussion-toggle').on('click', function(e){
+                e.stopImmediatePropagation();
+                $('#discussion-modal').modal('show');
+                $('.close-modal-background, .modal-backdrop, .player-discussion>.close').on('click', function(){
+                    $('#discussion-modal').modal('hide');
+                });
+            });
+        }
+        
         //TODO Add the discussions to the save function. 
         //  Fix all the things. Especially modal('show') when reviewing.
         //Load the discussions so they're saved by the cloning.
         document.body.addEventListener('DOMNodeInserted', function (e) {
-            if (e.target.id === 'discussion-modal-container' || redesign && $(e.target).has('#discussion-toggle').length){
+            if (redesign ? $(e.target).has('#discussion-toggle').length && e.target.id !== 'controls'
+                           : e.target.id === 'discussion-modal-container'){
                 $('<style type="text/css" id="modalcss">.modal-backdrop.in{display:none;}</style>').appendTo("head");
                 $('#discussion-modal-container').hide();
                 console.log('load discussions');
@@ -200,7 +204,7 @@ function init(){
                 bind_discussion_toggle();
                 document.body.addEventListener('DOMNodeInserted', function wait() {
                     if  ($('.modal-backdrop.in').length){
-                        $('#discussion-modal').modal('hide')
+                        $('#discussion-modal').modal('toggle')
                         $('#discussion-modal-container').show();
                         
                         $('.modal-backdrop.in, #modalcss').remove();
@@ -211,6 +215,8 @@ function init(){
                         document.body.removeEventListener('DOMNodeInserted', wait);
                     }
                 });
+            }else if (finished && $(e.target).has('.session-end-footer').length){
+                finish();
             }
             //TODO: Add a check for .badge-wrong-big and call red(). Just remember to reset to green if retry is successful
         });
@@ -223,9 +229,10 @@ function init(){
             }
         });
         
-        //TODO: See if this is necessary after the redesign.
+        
         $(document).on('click.hh', '#resume_button', function(){ 
             replace_lesson(cur_lesson_id); 
+            //TODO: See if this is necessary after the redesign.
             if (finished && ($('#end-carousel .left').length > 1 || !$('#end-carousel .active').length)){
                 $('#end-carousel .item').removeClass('active next left');
                 $('#end-carousel .item:eq(' +$('.dots .active').data('slide')+ ')').addClass('active')
@@ -237,7 +244,7 @@ function init(){
             var button = $('<button id="review_button" class="btn large btn-lg btn-standard right" style="margin:0 10px 0 0;">Review</button>'),
                 loc = failed ? '#controls>' + (redesign ? '.col-right' : '.row>.right') 
                              : (redesign ? '.session-end-footer' : 'div.buttons');
-            failed ? $(loc).append(button) : $(loc).prepend(button)
+            failed ? $(loc).append(button) : $(loc).prepend(button);//Redesign CAN both be prepend
             !failed && redesign ? button.css({position:'absolute', left:'40px'}) 
                                 : button.css('float','left');
             finished = true;
@@ -263,12 +270,21 @@ function init(){
         };
         
         duo.SessionView.prototype.showEndView = function(){
-            cur_lesson_id -= 1; //newNext() increments on the last one too, adjust for that.
-            header = $('#app>.player-header').detach();//TODO: Improve?
+            red();
+            //Timed out lessons don't need this. Timeouts will set finished to true earlier.
+            cur_lesson_id -= !finished; //newNext() increments on the last one too, adjust for that.
+            header = $('.player-header').detach();//TODO: Improve? 
             origShowEndView.apply(this, arguments);
-            finish();
+            finished = true; //TODO FIX THIS ONCE THE MIGRATION TO THE REDESIGN IS COMPLETE.
+            //finish(); end view won't fully load yet. Instead, I'm adding an else if to the DOMNodeInserted binding
         };
-       
+        
+        duo.TimedSessionView.prototype.timesUp = function(){
+            save_lesson(cur_lesson_id);
+            finished = true;
+            origTimesUp.apply(this, arguments);
+        }
+            
         $(document).on('click.hh', '#review_button', function(){
             if (failed){
                 save_lesson('end');
