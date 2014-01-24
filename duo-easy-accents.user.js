@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.2
+// @version      0.1.5
 // ==/UserScript==
 
 
@@ -12,8 +12,6 @@
 // Some languages have characters that can be accented in many different ways 
 // (like the French 'e' or the Portuguese 'a'). While those letters are reachable by tapping ALT multiple times, 
 // it may become unweildy and annoying. I am open to other suggestions.
-
-//TODO: Add the rest of the languages from the incubator :)
 
 function inject(f) {
     var script = document.createElement('script');
@@ -24,75 +22,76 @@ function inject(f) {
 
 inject(main);
 function main(){
-    console.log('duo easy accents');
-    var spanish_map = {
-            'A': 'á', 'E': 'é', 'I': 'í', 'O': 'ó', 'U': ['ú', 'ü'],
-            'N': 'ñ', '1': '¡', '?': '¿', '¿': '¿'
+    console.log('Duo Easy Accents');
+    var maps = {
+        es: {'A':'á', 'E':'é', 'I':'í', 'O':'ó', 'U':'úü', 'N':'ñ', '1':'¡', '!':'¡', '?':'¿'},
+        fr: {'A':'àâæ', 'E':'èéêë', 'I':'îï', 'O':'ôœ', 'U':'ùûü', 'C':'ç'},
+        pt: {'A':'ãáâà', 'E':'éê', 'I':'í', 'O':'õóô', 'U':'úü', 'C':'ç'},
+        de: {'A':'ä', 'O':'ö', 'U':'ü', 'S':'ß'},
+        it: {'A':'àá', 'E':'èé', 'I':'ìí', 'O':'òó', 'U':'ùú'},
+        pl: {'A':'ą', 'C':'ć', 'E':'ę', 'L':'ł', 'N':'ń', 'O':'ó', 'S':'ś', 'Z':'źż'},
+        ro: {'A':'ăâ', 'I':'î', 'S':'şș', 'T':'ţț'},
+        hu: {'A':'á', 'E':'é', 'I':'í', 'O':'öóő', 'U':'üúű'},
+        dn: {'E':'éë', 'I':'ï', 'O':'óö', 'U':'ü'},
+        tr: {'C':'ç', 'G':'ğ', 'I':'ıİ', 'O':'ö', 'S':'ş', 'U':'ü'}
         },
-        french_map = {
-            'A': ['à', 'â', 'æ'], 'E': ['è', 'é', 'ê', 'ë'], 'I': ['î', 'ï'],
-            'O': ['ô', 'œ'], 'U': ['ù', 'û', 'ü'], 'C': ['ç']
-        },
-        portuguese_map = {
-            'A': ['ã', 'á', 'â', 'à'], 'E': ['é', 'ê'], 'I': ['í'],
-            'O': ['õ', 'ó', 'ô'], 'U': ['ú', 'ü'], 'C': ['ç']
-        },
-        german_map = {'A': 'ä', 'O': 'ö', 'U': 'ü', 'S': 'ß'
-        },
-        italian_map = {
-            'A': ['à', 'á'], 'E': ['è', 'é'], 'I': ['ì', 'í'], 
-            'O': ['ò', 'ó'], 'U': ['ù', 'ú']
-        },
-        polish_map = {'A': 'ą', 'C': 'ć', 'E': 'ę', 'L': 'ł', 
-                      'N': 'ń', 'O': 'ó', 'S': 'ś', 'Z': ['ź','ż']
-        },
-        romanian_map = {'A':['ă','â'], 'I': 'î', 'S': ['ş','ș'], 'T': ['ţ','ț']
-        };
-        hungarian_map = {'A': 'á', 'E': 'é', 'I': 'í', 'O': ['ö','ó','ő'], 'U': ['ü','ú','ű']
-        },
-        dutch_map = {'E': ['é','ë'], 'I': 'ï', 'O': ['ó','ö'], 'U': 'ü'
-        },
-        turkish_map = {'C': 'ç', 'G': 'ğ', 'I': ['ı','İ'], 'O': 'ö', 'S': 'ş', 'U': 'ü'
-        },
-        maps = {'es': spanish_map, 'fr': french_map, 'pt': portuguese_map,
-                'it': italian_map, 'de': german_map, 'hu': hungarian_map,
-                'tr': turkish_map, 'pl': polish_map, 'ro': romanian_map,
-                'dn': dutch_map},
         taps = 0,
         last_press = [];
 
     $(document).on('keydown', '[lang][lang!=en]', function (e) {
-        //If the pressed key isn't already pressed, or is alt, or it's an unsupported language, return
-        if (!e.altKey || e.which===18 || !maps[e.target.lang]) { return; }//change this if we use `'", also change the keyup
+        //If the pressed key isn't already pressed, return
+        if (!e.altKey || e.which===18) { return; }
         //If the same key is pressed in a short period of time, increment taps
-        taps = (last_press[0] === e.which && new Date() - last_press[1] <= 900) ? taps+1 : 1;
-        //Get the list of characters that the pressed key could be replaced with
-        var char_lst = maps[e.target.lang][String.fromCharCode(e.which)];
-        //If the pressed key doesn't have accented alternates, return
-        if (char_lst === undefined){ return false; }
-        //Choose which accented character based on the number of taps
-        var chr = char_lst[(taps-1) % char_lst.length],
-            //save the old text
-            text = this.value, 
-            //save the old cursor location
-            start = this.selectionStart, 
-            end = this.selectionEnd;
-        //Capitalize letter if shift is pressed
-        if (e.shiftKey) { chr = chr.toUpperCase(); }
-        //Insert the character at the cursor's position.
-        //If we've tapped multiple times, remove the last character.
-        this.value = text.slice(0, start - (taps>1)) + chr + text.slice(end); 
-        //Move the cursor after the new letter.
-        this.setSelectionRange(start+1, end+1); 
-        //Log the key pressed and the time, to measure for multiple taps.
+        taps = (last_press[0] === e.which && new Date() - last_press[1] <= 750) ? taps+1 : 1;
+        //Get accented chr; taps-1 is the 0-indexed accented chr to get.
+        var chr = get_char(e.target.lang, String.fromCharCode(e.which), taps-1);
+        if (!chr){ return false; }
+        chr = e.shiftKey ? chr.toUpperCase() : chr;
+        //Insert chr into textarea; Replace last chr for multiple taps by taps>1
+        insert_char(this, chr, taps>1);
         last_press = [e.which, new Date()];
         //To override any other Alt+<x> hotkeys.
         return false;
     });
-
-
-    $(document).on('keyup', '[lang][lang!=en]', function (e) {
-        //If alt is unpressed, reset the last tapped key.
-        if (e.which === 18) { last_press = []; }
+    
+    function get_char(lang, base, index){
+        if (!maps[lang]){ return false; }
+        var char_lst = maps[lang][base];
+        return char_lst ? char_lst[index % char_lst.length] : false;
+    }
+    
+    function insert_char(textarea, new_char, del){
+        var text = textarea.value,
+            start = textarea.selectionStart,
+            end = textarea.selectionEnd;
+        //Insert the character. If we're rotating through alternate letters, remove the last character.
+        textarea.value = text.slice(0, del ? end-1 : start) + new_char + text.slice(end);         
+        //Move the caret. If deleting the previous, the caret should remain. (Hence x+!del)
+        //If replacing selected text (and not deleting previous), caret should unselect and be start+1
+        textarea.setSelectionRange(start+!del, (end-start&&!del ? start : end) +!del); 
+    }
+    $(document).on('keyup', '[lang][lang!=en]', function (e){
+        if (e.which === 18){ //ALT keyup
+            //Reset the last tapped key.
+            last_press = [];
+            //This ALT keyup isn't from an ALT+<x> combo, so modify the last char
+            if (taps===0){
+                var base = this.value.slice(this.selectionEnd-1, this.selectionEnd),
+                    index;
+                $.each(maps[e.target.lang], function(key, val){
+                    index = val.indexOf(base.toLowerCase());
+                    if (index > -1){
+                        base = (base.toUpperCase() === base) ? key : key.toLowerCase();
+                        return false;
+                    }
+                });
+                var chr = get_char(e.target.lang, base.toUpperCase(), index+1);
+                if (!chr){ return false; }
+                chr = /[A-Z]/.test(base) ? chr.toUpperCase() : chr;
+                insert_char(this, chr, true);
+            }
+            taps = 0;
+            return false;
+        }
     }); 
 }
