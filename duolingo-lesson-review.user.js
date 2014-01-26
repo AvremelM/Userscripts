@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.1
+// @version      0.1.2
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -82,16 +82,16 @@ function init(){
             console.log('cur: ' + cur_lesson_id + ', old id: ' + selected_lesson_id + ', new id ' + replace_id);
             if (selected_lesson_id === replace_id){ return false; } //don't replace yourself with yourself.
             if (selected_lesson_id === cur_lesson_id || selected_lesson_id === 'end'){//if switching away from cur_lesson
-                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main, #end-carousel').detach(), $('#discussion-modal-container').detach(), $('#app').prop('class')]
+                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main, #end-carousel').hide(), $('#discussion-modal-container').hide(), $('#app').prop('class')]
                                                   : [$('#app>div:not(.player-header)').detach(), $('#app').prop('class')];
             }else if (lessons[replace_id] === undefined){
                 return false;
             }else{
-                redesign ? $('.player-container>footer, .player-main, #end-carousel, .discussion-modal-container').remove()
+                redesign ? $('#controls, .player-main, .discussion-modal-container').remove()
                 		 : $('#app>div:not(.player-header)').remove();
             }
            
-            $(redesign?'.player-container':'#app').append(lessons[replace_id][0]);
+            $(redesign?'.player-container':'#app').append(lessons[replace_id][0].show());//.show() is for redesign success end view.
             redesign && $('body').append(lessons[replace_id][1]);
             $('#app').prop('class', lessons[replace_id][redesign+1]);//tricky trick
             bind_discussion_toggle();//TODO: Remove the other?
@@ -106,9 +106,9 @@ function init(){
             //Disable all controls except for discuss
             if (replace_id !== cur_lesson_id){//switching not to cur
                 $('#next_button, #continue_button, #show-report-options, #discussion-modal textarea').attr('disabled', 'disabled');
-                $('#submit_button, #skip_button, #review_button, .twipsy\
+                $('#submit_button, #skip_button, .twipsy\
                    #home-button, #fix_mistakes_button, #controls .tooltip').remove();
-                
+                $('.hint-table').hide();
                 var resume_button = $('<button id="resume_button" class="btn success large right" tabindex="20">Resume</button>');
                 $('#next_button, #continue_button, #retry-button').after(resume_button).remove();
                 
@@ -121,19 +121,20 @@ function init(){
             
             selected_lesson_id = replace_id;
             select_cell(selected_lesson_id);
-            activate_arrows();
         }
         
         function select_cell(cell_num){
+            //TODO: For redesign: add the box-shadow to .inner only. 
+            //       Inherit b-color on .nothing, and reset on .done (red uses b-image, so it won't reset that);
             $('li[id^=element-]').find('.inner').andSelf().css({'box-shadow': '', 'border-right-width': '1px'});
             $('li#element-'+cell_num).find('.inner')
                                      .andSelf().css({'box-shadow': '1px 1px 3px black inset',
                                                      'border-right-width': '0px'});
-            //TODO: Move out of select_cell(), only needs to run once at the beginning
             $('li[id^=element-]:first-child').css({'-webkit-border-radius': '9px 0 0 9px', 
                                                   'border-radius': '9px 0 0 9px'});              
             $('li[id^=element-]:last-child').css({'-webkit-border-radius': '0 9px 9px 0', 
-                                                  'border-radius': '0 9px 9px 0'});           
+                                                  'border-radius': '0 9px 9px 0'});            
+            activate_arrows();
         }
 
         //Hijack the rendered() function (it runs after each problem is rendered)
@@ -143,7 +144,6 @@ function init(){
                 add_arrows();
             }
             select_cell(selected_lesson_id);
-            activate_arrows();
             return origRendered.apply(this, arguments);
         };
 
