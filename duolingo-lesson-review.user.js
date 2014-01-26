@@ -4,24 +4,15 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.0
+// @version      0.1.1
 // ==/UserScript==
-
-//NOTE: This release is to add basic support  for the new site design. 
-// Not everything works yet, but it's a stopgap.
-// Once everyone has moved to the new design, old code should be removed.
 
 //Beware all who enter here. This code may be hideous and worse.
 //I am not responsible for any damage done to your eyes, or the ears of those around you.
 
-//TODO: First lesson cell should get selected (in lessons and word_practice; practices does already)
-//      Lesson should turn red as soon as continue is enabled. 
-//          Maybe override graded function to run red(), but graded doesn't work for audio;
-//          This probably made sense when I wrote, but now I haven't got a clue.
-//      Inject a stylesheet and use classes instead of .css()
+//TODO: Inject a stylesheet and use classes instead of .css()
 //      Maybe get really fancy, and hijack Session and SessionView, and switch lessons with .set({positon,x}) and .render()
 //          Needs work. Doesn't save grading. Replays wrong audio.
-//TOFIX: If you click on the discussion toggle and then on the backdrop while the discussions are still loading, the discussion will pop up without the modal when they load.
 
 function inject() { //Inject the script into the document
 	var script;
@@ -40,9 +31,10 @@ inject(init);
 function init(){
     console.log('Duolingo Lesson Review');
     var origNext         = duo.SessionView.prototype.next,
+        origRendered     = duo.SessionView.prototype.rendered,
+        origGraded       = duo.SessionView.prototype.graded,
         origShowFailView = duo.SessionView.prototype.showFailView,
         origShowEndView  = duo.SessionView.prototype.showEndView,
-        origRender       = duo.SessionView.prototype.render,
         origTimesUp      = duo.TimedSessionView.prototype.timesUp,
         origPushState    = window.history.pushState;
 
@@ -54,12 +46,16 @@ function init(){
         return origPushState.call(this, a, b, c);
     };
 
-
     function cleanup(){
         $(document).off('.hh'); //unbind any handlers from previous lessons.
-        duo.SessionView.prototype.next         = origNext; //remove overrides
-        duo.SessionView.prototype.showFailView = origShowFailView;
-        duo.SessionView.prototype.showEndView  = origShowEndView;
+        $.extend(duo.SessionView.prototype, {
+            next: origNext, 
+            rendered: origRendered, 
+            graded: origGraded, 
+            showFailView: origShowFailView, 
+            showEndView: origShowEndView
+        });
+        duo.TimedSessionView.prototype.timesUp = origTimesUp;
     }
 
     function main(){
@@ -75,8 +71,6 @@ function init(){
             header, last_lesson_id,
             waiting_for_discussion_load = false,
             redesign = duo.user.get("ab_options").site_redesign_experiment ;
-        
-        select_cell(selected_lesson_id);
         
         function save_lesson(save_id){
             var app_class = $('#app').prop('class');
@@ -111,12 +105,9 @@ function init(){
 
             //Disable all controls except for discuss
             if (replace_id !== cur_lesson_id){//switching not to cur
-                $('#next_button, #continue_button').attr('disabled', 'disabled');
-                $('#submit_button, #review_button, #home-button, #fix_mistakes_button').remove();
-                $('.twipsy').remove();
-                
-                $('#show-report-options').css('pointer-events', 'none');
-                $('#discussion-modal textarea').prop('disabled', 'disabled');
+                $('#next_button, #continue_button, #show-report-options, #discussion-modal textarea').attr('disabled', 'disabled');
+                $('#submit_button, #skip_button, #review_button, .twipsy\
+                   #home-button, #fix_mistakes_button, #controls .tooltip').remove();
                 
                 var resume_button = $('<button id="resume_button" class="btn success large right" tabindex="20">Resume</button>');
                 $('#next_button, #continue_button, #retry-button').after(resume_button).remove();
@@ -133,15 +124,6 @@ function init(){
             activate_arrows();
         }
         
-        function red(){//TODO: Integrate this somewhere.
-            if ($('#app').hasClass('incorrect')){
-                $('li#element-' + cur_lesson_id + '>.inner').andSelf()
-                    .css('background-image', '-webkit-linear-gradient(top, #EE6969, #FF0000)')
-                    .css('background-image', '-moz-linear-gradient(center top , #EE6969, #FF0000)')
-                    .css(redesign ? {'border': '1px solid #950000', 'border-left':'none'} : {});
-            }
-        }
-        
         function select_cell(cell_num){
             $('li[id^=element-]').find('.inner').andSelf().css({'box-shadow': '', 'border-right-width': '1px'});
             $('li#element-'+cell_num).find('.inner')
@@ -154,15 +136,15 @@ function init(){
                                                   'border-radius': '0 9px 9px 0'});           
         }
 
-        //Hijack the render() function (it renders each problem, as well as the opening practice view)
-        duo.SessionView.prototype.render = function newRender(){
+        //Hijack the rendered() function (it runs after each problem is rendered)
+        duo.SessionView.prototype.rendered = function newRendered(){
             console.log('render');
             if ($('#prev-arrow, #next-arrow').length !== 2){
                 add_arrows();
             }
             select_cell(selected_lesson_id);
             activate_arrows();
-            return origRender.apply(this, arguments);
+            return origRendered.apply(this, arguments);
         };
 
         //Hijack the function that switches lessons.
@@ -173,14 +155,22 @@ function init(){
             } else {
                 cur_lesson_id = (this.model.get('position') + 1); //0-indexed
                 save_lesson(cur_lesson_id);
-                red();
                 cur_lesson_id += 1;
                 selected_lesson_id = cur_lesson_id;
                 return origNext.apply(this, arguments);
             }
         };
         
-        
+        duo.SessionView.prototype.graded = function(){
+            var solution = this.model.getSubmittedSolution();
+            origGraded.apply(this, arguments);
+            if (solution.get('incorrect') && !solution.get('try-again')){
+                $('li#element-' + cur_lesson_id + '>.inner').andSelf()
+                    .css('background-image', '-webkit-linear-gradient(top, #EE6969, #FF0000)')
+                    .css('background-image', '-moz-linear-gradient(center top , #EE6969, #FF0000)')
+                    .css(redesign ? {'border': '1px solid #950000', 'border-left':'none'} : {});
+            }
+        }
         function bind_discussion_toggle(){
             $('#discussion-toggle').on('click', function(e){
                 e.stopImmediatePropagation();
@@ -191,8 +181,6 @@ function init(){
             });
         }
         
-        //TODO Add the discussions to the save function. 
-        //  Fix all the things. Especially modal('show') when reviewing.
         //Load the discussions so they're saved by the cloning.
         document.body.addEventListener('DOMNodeInserted', function (e) {
             if (redesign ? $(e.target).has('#discussion-toggle').length && e.target.id !== 'controls'
@@ -218,7 +206,6 @@ function init(){
             }else if (finished && $(e.target).has('.session-end-footer').length){
                 finish();
             }
-            //TODO: Add a check for .badge-wrong-big and call red(). Just remember to reset to green if retry is successful
         });
         
         $(document).on('click.hh', 'li[id^=element-]', function(){
@@ -255,7 +242,6 @@ function init(){
         }
         
         duo.SessionView.prototype.showFailView = function(){
-            red();
             if ($('#discussion-toggle').size() && !$("#discussion-modal").size()){
                 console.log('wait for discussions to finish loading');
                 waiting_for_discussion_load = true;//TODO
@@ -270,13 +256,12 @@ function init(){
         };
         
         duo.SessionView.prototype.showEndView = function(){
-            red();
             //Timed out lessons don't need this. Timeouts will set finished to true earlier.
             cur_lesson_id -= !finished; //newNext() increments on the last one too, adjust for that.
             header = $('.player-header').detach();//TODO: Improve? 
             origShowEndView.apply(this, arguments);
             finished = true; //TODO FIX THIS ONCE THE MIGRATION TO THE REDESIGN IS COMPLETE.
-            //finish(); end view won't fully load yet. Instead, I'm adding an else if to the DOMNodeInserted binding
+            //finish(); end view won't fully load by here. Instead, I'm adding an else if to the DOMNodeInserted binding
         };
         
         duo.TimedSessionView.prototype.timesUp = function(){
