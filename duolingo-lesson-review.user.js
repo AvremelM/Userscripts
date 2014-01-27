@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.2
+// @version      0.1.3
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -12,7 +12,8 @@
 
 //TODO: Inject a stylesheet and use classes instead of .css()
 //      Maybe get really fancy, and hijack Session and SessionView, and switch lessons with .set({positon,x}) and .render()
-//          Needs work. Doesn't save grading. Replays wrong audio.
+//          Needs work. Doesn't save grading. Replays wrong audio.Fix audio not playing after replacing a lesson (in either direction);
+//      Fix audio not playing after replacing a lesson (in either direction);
 
 function inject() { //Inject the script into the document
 	var script;
@@ -90,8 +91,9 @@ function init(){
                 redesign ? $('#controls, .player-main, .discussion-modal-container').remove()
                 		 : $('#app>div:not(.player-header)').remove();
             }
-           
-            $(redesign?'.player-container':'#app').append(lessons[replace_id][0].show());//.show() is for redesign success end view.
+            
+            var l = lessons[replace_id][0];
+            $(redesign?'.player-container':'#app').append(l.show());//.show() is for redesign success end view.
             redesign && $('body').append(lessons[replace_id][1]);
             $('#app').prop('class', lessons[replace_id][redesign+1]);//tricky trick
             bind_discussion_toggle();//TODO: Remove the other?
@@ -105,12 +107,12 @@ function init(){
 
             //Disable all controls except for discuss
             if (replace_id !== cur_lesson_id){//switching not to cur
-                $('#next_button, #continue_button, #show-report-options, #discussion-modal textarea').attr('disabled', 'disabled');
-                $('#submit_button, #skip_button, .twipsy\
+                l.find('#next_button, #continue_button, #show-report-options, #discussion-modal textarea').attr('disabled', 'disabled');
+                l.find('#submit_button, #skip_button, .twipsy\
                    #home-button, #fix_mistakes_button, #controls .tooltip').remove();
-                $('.hint-table').hide();
+                l.find('.hint-table').hide();
                 var resume_button = $('<button id="resume_button" class="btn success large right" tabindex="20">Resume</button>');
-                $('#next_button, #continue_button, #retry-button').after(resume_button).remove();
+                l.find('#next_button, #continue_button, #retry-button').after(resume_button).remove();
                 
                 if (finished && !failed){
                     $(redesign?'.player-container':'#app').prepend(header);
@@ -168,7 +170,7 @@ function init(){
                 $('li#element-' + cur_lesson_id + '>.inner').andSelf()
                     .css('background-image', '-webkit-linear-gradient(top, #EE6969, #FF0000)')
                     .css('background-image', '-moz-linear-gradient(center top , #EE6969, #FF0000)')
-                    .css(redesign ? {'border': '1px solid #950000', 'border-left':'none'} : {});
+                    .css(redesign ? {} : {'border': '1px solid #950000', 'border-left':'none'});
             }
         }
         function bind_discussion_toggle(){
@@ -222,8 +224,8 @@ function init(){
             //TODO: See if this is necessary after the redesign.
             if (finished && ($('#end-carousel .left').length > 1 || !$('#end-carousel .active').length)){
                 $('#end-carousel .item').removeClass('active next left');
-                $('#end-carousel .item:eq(' +$('.dots .active').data('slide')+ ')').addClass('active')
-                $(".carousel").carousel("pause")
+                $('#end-carousel .item:eq(' +$('.' + (redesign ? 'carousel-' : '') + 'dots .active').data('slide')+ ')').addClass('active');
+                $('#end-carousel .item.active').is(':last-child') && $(".carousel").carousel("pause");
             }
         });
         
