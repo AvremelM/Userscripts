@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.3
+// @version      0.1.4
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -12,8 +12,10 @@
 
 //TODO: Inject a stylesheet and use classes instead of .css()
 //      Maybe get really fancy, and hijack Session and SessionView, and switch lessons with .set({positon,x}) and .render()
-//          Needs work. Doesn't save grading. Replays wrong audio.Fix audio not playing after replacing a lesson (in either direction);
-//      Fix audio not playing after replacing a lesson (in either direction);
+//          Needs work. Doesn't save grading. Replays wrong audio.
+//Fix: Switching from successview before graphs are loaded, breaks graphs, and logs infinite errors. 
+//          hide() instead of .detach() works, but it breaks sound and other things on non end lessons.
+//      
 
 function inject() { //Inject the script into the document
 	var script;
@@ -83,7 +85,7 @@ function init(){
             console.log('cur: ' + cur_lesson_id + ', old id: ' + selected_lesson_id + ', new id ' + replace_id);
             if (selected_lesson_id === replace_id){ return false; } //don't replace yourself with yourself.
             if (selected_lesson_id === cur_lesson_id || selected_lesson_id === 'end'){//if switching away from cur_lesson
-                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main, #end-carousel').hide(), $('#discussion-modal-container').hide(), $('#app').prop('class')]
+                lessons[cur_lesson_id] = redesign ? [$('.player-container>footer, .player-main, #end-carousel').detach(), $('#discussion-modal-container').detach(), $('#app').prop('class')]
                                                   : [$('#app>div:not(.player-header)').detach(), $('#app').prop('class')];
             }else if (lessons[replace_id] === undefined){
                 return false;
@@ -93,7 +95,7 @@ function init(){
             }
             
             var l = lessons[replace_id][0];
-            $(redesign?'.player-container':'#app').append(l.show());//.show() is for redesign success end view.
+            $(redesign?'.player-container':'#app').append(l);
             redesign && $('body').append(lessons[replace_id][1]);
             $('#app').prop('class', lessons[replace_id][redesign+1]);//tricky trick
             bind_discussion_toggle();//TODO: Remove the other?
@@ -130,7 +132,7 @@ function init(){
             //       Inherit b-color on .nothing, and reset on .done (red uses b-image, so it won't reset that);
             $('li[id^=element-]').find('.inner').andSelf().css({'box-shadow': '', 'border-right-width': '1px'});
             $('li#element-'+cell_num).find('.inner')
-                                     .andSelf().css({'box-shadow': '1px 1px 3px black inset',
+                                     .andSelf().css({'box-shadow': '1px 1px 3px 1px black inset',
                                                      'border-right-width': '0px'});
             $('li[id^=element-]:first-child').css({'-webkit-border-radius': '9px 0 0 9px', 
                                                   'border-radius': '9px 0 0 9px'});              
