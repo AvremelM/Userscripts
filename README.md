@@ -3,6 +3,8 @@
 * [Hebrewbooks Mods](https://github.com/HodofHod/Userscripts/raw/master/Hebrewbooks%20Mods.user.js)  
 * [Duolingo Lesson Review](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
 * [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
+* [Duolingo Comment Links Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
+* [Duolingo Mods (all scripts)](https://github.com/HodofHod/Userscripts/raw/master/duo-mods.user.js)
 
 
 ##Installation instructions
