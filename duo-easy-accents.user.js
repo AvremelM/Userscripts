@@ -16,7 +16,7 @@
 function inject(f) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
-    script.name = 'easy_accents';
+    script.setAttribute('name', 'easy_accents');
     script.textContent = '(' + f.toString() + ')()';
     document.body.appendChild(script);
 }
