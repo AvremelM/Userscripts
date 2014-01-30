@@ -16,6 +16,7 @@
 function inject(f) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
+    script.name = 'easy_accents';
     script.textContent = '(' + f.toString() + ')()';
     document.body.appendChild(script);
 }
@@ -38,7 +39,7 @@ function main(){
         taps = 0,
         last_press = [];
 
-    $(document).on('keydown', '[lang][lang!=en]', function (e) {
+    $(document).on('keydown.hh', '[lang][lang!=en]', function (e) {
         //If the pressed key isn't already pressed, return
         if (!e.altKey || e.which===18) { return; }
         //If the same key is pressed in a short period of time, increment taps
@@ -70,7 +71,7 @@ function main(){
         //If replacing selected text (and not deleting previous), caret should unselect and be start+1
         textarea.setSelectionRange(start+!del, (end-start&&!del ? start : end) +!del); 
     }
-    $(document).on('keyup', '[lang][lang!=en]', function (e){
+    $(document).on('keyup.hh', '[lang][lang!=en]', function (e){
         if (e.which === 18){ //ALT keyup
             //Reset the last tapped key.
             last_press = [];
