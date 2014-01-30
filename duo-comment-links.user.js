@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.0.2
+// @version      0.0.3
 // ==/UserScript==
 
 
@@ -17,7 +17,7 @@ function inject(f) {
 }
 
 inject(function(){
-    $(document).on('mouseover.hh', '.discussion-comments-list:not(.dlinked)', function (){
+    $(document).on('mouseover', '.discussion-comments-list:not(.dlinked)', function (){
         $(this).addClass('dlinked');    
         $('li[id*=comment-] .body').each(function(){
             var $timestamp = $(this).next('.footer').contents().filter(function(){return this.nodeType === 3;}),
