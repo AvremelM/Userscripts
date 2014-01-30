@@ -21,7 +21,7 @@ function inject(f) { //Inject the script into the document
     var script;
     script = document.createElement('script');
     script.type = 'text/javascript';
-    script.name = 'lesson_review';
+    script.setAttribute('name', 'lesson_review');
     script.textContent = '(' + f.toString() + ')(jQuery)';
     document.head.appendChild(script);
 }
