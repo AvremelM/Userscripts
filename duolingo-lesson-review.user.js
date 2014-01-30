@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.4
+// @version      0.1.5
 // ==/UserScript==
 
 //Beware all who enter here. This code may be hideous and worse.
@@ -17,17 +17,15 @@
 //          hide() instead of .detach() works, but it breaks sound and other things on non end lessons.
 //      
 
-function inject() { //Inject the script into the document
-	var script;
-	for (var i = 0; i < arguments.length; i++) {
-		if (typeof (arguments[i]) === 'function') {
-			script = document.createElement('script');
-			script.type = 'text/javascript';
-			script.textContent = '(' + arguments[i].toString() + ')(jQuery)';
-			document.head.appendChild(script);
-		}
-	}
+function inject(f) { //Inject the script into the document
+    var script;
+    script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.name = 'lesson_review';
+    script.textContent = '(' + f.toString() + ')(jQuery)';
+    document.head.appendChild(script);
 }
+
 
 inject(init);
 
