@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.5
+// @version      0.1.6
 // ==/UserScript==
 
 
@@ -39,7 +39,7 @@ function main(){
         taps = 0,
         last_press = [];
 
-    $(document).on('keydown.hh', '[lang][lang!=en]', function (e) {
+    $(document).on('keydown', '[lang][lang!=en]', function (e) {
         //If the pressed key isn't already pressed, return
         if (!e.altKey || e.which===18) { return; }
         //If the same key is pressed in a short period of time, increment taps
@@ -71,7 +71,7 @@ function main(){
         //If replacing selected text (and not deleting previous), caret should unselect and be start+1
         textarea.setSelectionRange(start+!del, (end-start&&!del ? start : end) +!del); 
     }
-    $(document).on('keyup.hh', '[lang][lang!=en]', function (e){
+    $(document).on('keyup', '[lang][lang!=en]', function (e){
         if (e.which === 18){ //ALT keyup
             //Reset the last tapped key.
             last_press = [];
