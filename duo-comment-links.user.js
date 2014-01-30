@@ -11,7 +11,7 @@
 function inject(f) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
-    script.name = 'comment_links';
+    script.setAttribute('name', 'comment_links');
     script.textContent = '(' + f.toString() + ')()';
     document.body.appendChild(script);
 }
