@@ -1,10 +1,19 @@
 ##Userscripts:
 
-* [Hebrewbooks Mods](https://github.com/HodofHod/Userscripts/raw/master/Hebrewbooks%20Mods.user.js)  
-* [Duolingo Lesson Review](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
-* [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
-* [Duolingo Comment Links Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
+
+* [Duolingo All Scripts](https://github.com/HodofHod/Userscripts/raw/master/duo-all-scripts.user.js)
+  * Like Duolingo Mods, except auto-updating. It loads the newest version of Duolingo Mods from github.com,
+    so that you never have to update again.
 * [Duolingo Mods (all scripts)](https://github.com/HodofHod/Userscripts/raw/master/duo-mods.user.js)
+  * Loads all the below scripts, plus will become a place for me to put smaller mods. If you don't want all the scripts, you can disable whichever you like from the Duolingo Settings page. (Neat, huh?)
+* [Duolingo Lesson Review](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
+  * Allows you to go back and review problems during lessons
+* [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
+  * Type special characters just by using alt. No need for alt codes, new keyboard layouts, or clicking
+* [Duolingo Comment Links Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
+  * Turns the timestamp into a direct link for every comment in Duolingo's Dicussions
+
+
 
 
 ##Installation instructions
