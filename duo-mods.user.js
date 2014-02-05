@@ -4,13 +4,14 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.0
+// @version      0.1.1
 // ==/UserScript==
 
 function inject(f) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.textContent = '(' + f.toString() + ')()';
+    script.setAttribute("name", "duo-mods");
     document.head.appendChild(script);
 }
 
