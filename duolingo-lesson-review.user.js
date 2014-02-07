@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.2.0
+// @version      0.2.1
 // ==/UserScript==
 
 //TODO: Inject a stylesheet and use classes instead of .css()?
@@ -62,7 +62,7 @@ function init(){
             if (save_id !== 'end'){
                 lessons[save_id][0] = $problem.after($problem.clone()).add($controls.clone(true)).detach();
                 var l = lessons[save_id][0].add(lessons[save_id][1]),
-                    resume_button = $('<button id="resume_button" class="btn success large right" tabindex="20">Resume</button>');
+                    resume_button = $('<button id="resume_button" class="btn success btn-lg right" tabindex="20">Resume</button>');
             
                 //Disable or hide all controls except for discuss and report
                 l.find('#show-report-options').attr('disabled', 'disabled');
@@ -162,6 +162,7 @@ function init(){
         //Hijack the function that switches lessons.
         duo.SessionView.prototype.next = function newNext(){
             $('#discussion-modal-container').detach();
+            $('#pause_toggle').remove();
             current_id = (this.model.get('position') + 1); //adjust from 0-indexed
             save_lesson(current_id);
             current_id += 1;
@@ -170,6 +171,22 @@ function init(){
         };
         
         duo.SessionView.prototype.graded = function(){
+            if (this.timer_view !== undefined){
+                //add pause Button
+                var timer = this.timer_view;
+                $('#next_button').before('<button id="pause_toggle" class="btn btn-blue btn-lg" style="margin-right:10px;">Pause</button>');
+                $('#pause_toggle').on('click', function(){
+                    if (timer.paused === null){
+                        timer.pause();
+                        $('#next_button').attr('disabled','disabled');
+                        $(this).text('Resume');
+                    }else{
+                        timer.resume();
+                        $('#next_button').removeAttr('disabled');
+                        $(this).text('Pause');
+                    }
+                });
+            }
             var solution = this.model.getSubmittedSolution();
             OrigSessionView.graded.apply(this, arguments);
             if (solution.get('incorrect') && !solution.get('try-again')){
