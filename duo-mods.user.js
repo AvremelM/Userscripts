@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.2.0
+// @version      0.2.2
 // ==/UserScript==
 
 function inject(f) {
@@ -30,16 +30,16 @@ function main(){
             'Lesson Review' : {id: 'lesson_review', url: 'duolingo-lesson-review', 
                 desc: 'Adds the ability to go back and review missed problems'}, 
             'Easy Accents': {id: 'easy_accents', url: 'duo-easy-accents',
-                desc: 'Type accented characters easily in lessons, using the Alt key'}, 
-            'Comment Links': {id: 'comment_links', url: 'duo-comment-links',
-                desc: 'Turns the timestamps underneath comments into direct links to themselves'}
+                desc: 'Type accented characters easily in lessons, using the Alt key'}
         },mods = {
             'Discussion Search': {id: 'discussion_search', func: discussionSearch,
                 desc: 'Expandable search box on the discussions page'}, 
             'Notification Links': {id: 'notification_links', func: notificationLinks, 
                 desc: 'Clicking on a notification will take you to its event page'},
             'Open in New Tab': {id: 'ctrl_new_tab', func: ctrlNewTab, 
-                desc: 'Holding ctrl when clicking a link opens a new tab. Like it\'s supposed to'}
+                desc: 'Holding ctrl when clicking a link opens a new tab. Like it\'s supposed to'}, 
+            'Comment Links': {id: 'comment_links', func: commentLinks,
+                desc: 'Turns the timestamps underneath comments into direct links to themselves'}
         };
     
     function addMods(){
@@ -54,7 +54,7 @@ function main(){
         $.each(scripts, function(title, val){
             var esc_name = val.id;
             if (getCookie(esc_name) !== 'false' && !$('script[name='+esc_name+']')[0]){
-                addScript(base.join(val.url), esc_name);//[1]), esc_name);
+                addScript(base.join(val.url), esc_name);
             }
         });
         
@@ -78,8 +78,8 @@ function main(){
                                 <input class="border" type="checkbox" style="float:left; margin:4px 20px 0 30px;">\
                               </li>');
             $.each($.extend({}, scripts, mods), function(title, val){
-                var esc_name = val.id;
-                    $setting = template.clone().find('label').text(title).attr('title', val.desc)
+                var esc_name = val.id;//[0],
+                    $setting = template.clone().find('label').text(title).attr('title', val.desc)//[2])
                                        .end().find('input').attr('id', esc_name).end();//this line is really unnecessary.
                     cookie = getCookie(esc_name),
                     enabled = (cookie === "true" || !cookie);
@@ -102,7 +102,7 @@ function main(){
         $(document).on('input.'+nspace, 'input[name=search]', function () {
             var $textarea = $(this),
             $searchtools = $('.comment-rankings>.search-topics, #ask-question');
-            if (!this.expanded && this.value.length >= 8) {
+            if (!this.expanded && this.value.length >= 8){
                 $(this).prop('expanded', true);
                 $('.nav-tabs').css({'clear': 'both','padding-top': '50px'});
                 $('.comment-rankings>h1').css({'position': 'absolute'});
@@ -157,6 +157,21 @@ function main(){
                     $(this).removeAttr('target');
                 });
             }
+        });
+    }
+    
+    function commentLinks(nspace){
+        $(document).on('mouseover', '.discussion-comments-list:not(.dlinked)', function (){
+            $(this).addClass('dlinked');    
+            $('li[id*=comment-] .body').each(function(){
+                var $timestamp = $(this).next('.footer').contents().filter(function(){
+                    return this.nodeType === 3;
+                }),
+                $link = $('<a href="' + document.location.pathname.replace(/\$.+$/, '') +
+                    '$comment_id=' + this.id.replace(/^body-(\d+)$/, '$1') +
+                    '">' + $timestamp.text() + '</a>');
+                $timestamp.replaceWith($link);
+            });
         });
     }
 }
