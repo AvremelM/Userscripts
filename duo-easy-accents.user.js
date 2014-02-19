@@ -6,6 +6,12 @@
 // @version      0.1.6
 // ==/UserScript==
 
+/*
+Copyright (c) 2013-2014 HodofHod (https://github.com/HodofHod)
+
+Licensed under the MIT License (MIT)
+Full text of the license is available at https://raw2.github.com/HodofHod/Userscripts/master/LICENSE
+*/
 
 // Technically, these are accents, diacritics, and ligatures, 
 // but accents is the commonest of those terms so that's the script's title.
