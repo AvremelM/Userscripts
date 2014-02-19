@@ -7,13 +7,6 @@
 // @version      0.1.0
 // ==/UserScript==
 
-/*
-Copyright (c) 2013-2014 HodofHod (https://github.com/HodofHod)
-
-Licensed under the MIT License (MIT)
-Full text of the license is available at https://raw2.github.com/HodofHod/Userscripts/master/LICENSE
-*/
-
 //So what this script will do is load Duolingo Mods, which has some miscellaneous mods, but will additionally,
 //  load all the other scripts. This is so that you *never* have to update another one of my scripts, because I will
 //  be modifiying DUoling Mods to only load the newest versions.
