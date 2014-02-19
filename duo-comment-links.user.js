@@ -7,6 +7,12 @@
 // @version      0.0.3
 // ==/UserScript==
 
+/*
+Copyright (c) 2013-2014 HodofHod (https://github.com/HodofHod)
+
+Licensed under the MIT License (MIT)
+Full text of the license is available at https://raw2.github.com/HodofHod/Userscripts/master/LICENSE
+*/
 
 function inject(f) {
     var script = document.createElement('script');
