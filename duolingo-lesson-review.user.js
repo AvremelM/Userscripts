@@ -7,6 +7,13 @@
 // @version      0.2.1
 // ==/UserScript==
 
+/*
+Copyright (c) 2013-2014 HodofHod (https://github.com/HodofHod)
+
+Licensed under the MIT License (MIT)
+Full text of the license is available at https://raw2.github.com/HodofHod/Userscripts/master/LICENSE
+*/
+
 //TODO: Inject a stylesheet and use classes instead of .css()?
 
 function inject(f) { //Inject the script into the document
