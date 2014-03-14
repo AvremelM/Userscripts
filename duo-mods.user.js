@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.2.2
+// @version      0.3.0
 // ==/UserScript==
 
 /*
@@ -168,17 +168,61 @@ function main(){
     }
     
     function commentLinks(nspace){
+        commentTimes();
         $(document).on('mouseover', '.discussion-comments-list:not(.dlinked)', function (){
-            $(this).addClass('dlinked');    
+            $(this).addClass('dlinked');
+            base_url = document.location.pathname.replace(/\$.+$/, '');
             $('li[id*=comment-] .body').each(function(){
                 var $timestamp = $(this).next('.footer').contents().filter(function(){
-                    return this.nodeType === 3;
-                }),
-                $link = $('<a href="' + document.location.pathname.replace(/\$.+$/, '') +
-                    '$comment_id=' + this.id.replace(/^body-(\d+)$/, '$1') +
-                    '">' + $timestamp.text() + '</a>');
+                        return this.nodeType === 3;
+                    }),
+                    direct = '$comment_id=' + this.id.replace(/^body-(\d+)$/, '$1'),
+                    $link = $('<a class="direct-comment-link">')
+                        .attr('href', base_url+direct)
+                        .text($timestamp.text());
                 $timestamp.replaceWith($link);
             });
         });
+    }
+    
+    function commentTimes(){
+        var comViewRender  = duo.CommentView.prototype.render,
+            listViewRender = duo.CommentListView.prototype.render,
+            CV, LV;
+        
+        duo.CommentView.prototype.render = function(){
+            CV = this.model;
+            return comViewRender.apply(this, arguments);
+        };
+        
+        duo.CommentListView.prototype.render = function(){
+            LV = this;
+            return listViewRender.apply(this, arguments);
+        };
+        
+        $(document).on('mouseover', '.list-discussion-item-footer:not(.timeadded), .discussion-main-detail:not(.timeadded)', function(){
+            $(this).addClass('timeadded');
+            //id is only for list items and comment threads, not top comment posts.
+            var id = this.parentNode.id.replace('comment-',''),
+                post = (!$(this).is('footer') ? CV
+                        : $(LV.collection.models).filter(function(){ return this.id==id; })[0]),
+                $timestamp = $(this).contents().filter(function(){return this.nodeType==3;}).eq(0);
+            $timestamp.replaceWith(
+                $('<a>').attr('title', gettime(post))
+                        .text($timestamp.text())
+            );
+        });
+        
+        $(document).on('mouseover', '.discussion-comments-list.dlinked:not(.timeadded)', function(){
+            $(this).addClass('timeadded');
+            var comments = CV.get('comments').models;
+            $.each(comments, function(){
+                $('[id$=comment-'+this.id + ']').find('.direct-comment-link')
+                    .attr('title', gettime(this));
+            });
+        });
+        
+        function gettime(a){return a.get('datetime_string').replace(/T([\d:]+)Z/,' at $1 GMT')}
+        
     }
 }
