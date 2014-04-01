@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.3.0
+// @version      0.3.1
 // ==/UserScript==
 
 /*
@@ -57,7 +57,7 @@ function main(){
             document.head.appendChild(script);
         }
         
-        var base = [//rawgithub.com/HodofHod/Userscripts/master/', '.user.js'];
+        var base = ['//rawgithub.com/HodofHod/Userscripts/master/', '.user.js'];
         $.each(scripts, function(title, val){
             var esc_name = val.id;
             if (getCookie(esc_name) !== 'false' && !$('script[name='+esc_name+']')[0]){
