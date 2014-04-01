@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.6
+// @version      0.1.7
 // ==/UserScript==
 
 /*
@@ -31,16 +31,16 @@ inject(main);
 function main(){
     console.log('Duo Easy Accents');
     var maps = {
-        es: {'A':'á', 'E':'é', 'I':'í', 'O':'ó', 'U':'úü', 'N':'ñ', '1':'¡', '!':'¡', '?':'¿'},
-        fr: {'A':'àâæ', 'E':'èéêë', 'I':'îï', 'O':'ôœ', 'U':'ùûü', 'C':'ç'},
-        pt: {'A':'ãáâà', 'E':'éê', 'I':'í', 'O':'õóô', 'U':'úü', 'C':'ç'},
-        de: {'A':'ä', 'O':'ö', 'U':'ü', 'S':'ß'},
-        it: {'A':'àá', 'E':'èé', 'I':'ìí', 'O':'òó', 'U':'ùú'},
-        pl: {'A':'ą', 'C':'ć', 'E':'ę', 'L':'ł', 'N':'ń', 'O':'ó', 'S':'ś', 'Z':'źż'},
-        ro: {'A':'ăâ', 'I':'î', 'S':'şș', 'T':'ţț'},
-        hu: {'A':'á', 'E':'é', 'I':'í', 'O':'öóő', 'U':'üúű'},
-        dn: {'E':'éë', 'I':'ï', 'O':'óö', 'U':'ü'},
-        tr: {'C':'ç', 'G':'ğ', 'I':'ıİ', 'O':'ö', 'S':'ş', 'U':'ü'}
+        es: {'A':'&aacute;', 'E':'&eacute;', 'I':'&iacute;', 'O':'&oacute;', 'U':'&uacute;&uuml;', 'N':'&ntilde;', '1':'&iexcl;', '!':'&iexcl;', '?':'&iquest;'},
+        fr: {'A':'&agrave;&acirc;&aelig;', 'E':'&egrave;&eacute;&ecirc;&euml;', 'I':'&icirc;&iuml;', 'O':'&ocirc;&oelig;', 'U':'&ugrave;&ucirc;&uuml;', 'C':'&ccedil;'},
+        pt: {'A':'&atilde;&aacute;&acirc;&agrave;', 'E':'&eacute;&ecirc;', 'I':'&iacute;', 'O':'&otilde;&oacute;&ocirc;', 'U':'&uacute;&uuml;', 'C':'&ccedil;'},
+        de: {'A':'&auml;', 'O':'&ouml;', 'U':'&uuml;', 'S':'&szlig;'},
+        it: {'A':'&agrave;&aacute;', 'E':'&egrave;&eacute;', 'I':'&igrave;&iacute;', 'O':'&ograve;&oacute;', 'U':'&ugrave;&uacute;'},
+        pl: {'A':'&#261;', 'C':'&#263;', 'E':'&#281;', 'L':'&#322;', 'N':'&#324;', 'O':'&oacute;', 'S':'&#347;', 'Z':'&#378;&#380;'},
+        ro: {'A':'&#259;&acirc;', 'I':'&icirc;', 'S':'&#351;&#537;', 'T':'&#355;&#539;'},
+        hu: {'A':'&aacute;', 'E':'&eacute;', 'I':'&iacute;', 'O':'&ouml;&oacute;&#337;', 'U':'&uuml;&uacute;&#369;'},
+        dn: {'E':'&eacute;&euml;', 'I':'&iuml;', 'O':'&oacute;&ouml;', 'U':'&uuml;'},
+        tr: {'C':'&ccedil;', 'G':'&#287;', 'I':'&#305;&#304;', 'O':'&ouml;', 'S':'&#351;', 'U':'&uuml;'}
         },
         taps = 0,
         last_press = [];
@@ -64,7 +64,18 @@ function main(){
     function get_char(lang, base, index){
         if (!maps[lang]){ return false; }
         var char_lst = maps[lang][base];
-        return char_lst ? char_lst[index % char_lst.length] : false;
+        //Unicode errors, so:
+        if (char_lst){
+            char_lst = char_lst.split(';').slice(0,-1)
+            character = htmlDecode(char_lst[index % char_lst.length] + ';');
+        }
+        return char_lst ? character : false;
+    }
+    
+    function htmlDecode(input){
+        var e = document.createElement('div');
+        e.innerHTML = input;
+        return e.childNodes[0].nodeValue;
     }
     
     function insert_char(textarea, new_char, del){
