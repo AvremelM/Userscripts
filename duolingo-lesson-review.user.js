@@ -72,7 +72,6 @@ function init(){
                     resume_button = $('<button id="resume_button" class="btn success btn-lg right" tabindex="20">Resume</button>');
             
                 //Disable or hide all controls except for discuss and report
-                l.find('#show-report-options').attr('disabled', 'disabled');
                 l.find('#submit_button, #skip_button, #home-button, #fix_mistakes_button').hide();
                 l.find('#next_button, #continue_button, #retry-button')
                     .after($( $('#resume_button')[0] || resume_button) ).hide();
