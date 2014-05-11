@@ -22,4 +22,4 @@ function addScript(URL, name) {
       document.head.appendChild(script);
 }
 
-addScript('https://github.com/HodofHod/Userscripts/raw/master/duo-mods.user.js', 'duo-add-scripts');
+addScript('//rawgithub.com/HodofHod/Userscripts/master/duo-mods.user.js', 'duo-mods');
