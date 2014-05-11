@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.1.0
+// @version      0.1.1
 // ==/UserScript==
 
 //So what this script will do is load Duolingo Mods, which has some miscellaneous mods, but will additionally,
