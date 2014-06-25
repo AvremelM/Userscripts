@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.2.2
+// @version      0.2.3
 // ==/UserScript==
 
 /*
