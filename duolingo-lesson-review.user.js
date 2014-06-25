@@ -177,9 +177,11 @@ function init(){
         };
         
         duo.SessionView.prototype.graded = function(){
+            //check to see if this is being called from (and with) TimedSessionView 
             if (this.timer_view !== undefined){
                 //add pause Button
                 var timer = this.timer_view;
+                $('#pause_toggle').off().remove();//don't assume graded won't be called twice.
                 $('#next_button').before('<button id="pause_toggle" class="btn btn-blue btn-lg" style="margin-right:10px;">Pause</button>');
                 $('#pause_toggle').on('click', function(){
                     if (timer.paused === null){
