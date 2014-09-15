@@ -4,7 +4,7 @@
 // @match        *://www.duolingo.com/*
 // @author       HodofHod
 // @namespace    HodofHod
-// @version      0.3.1
+// @version      0.3.2
 // ==/UserScript==
 
 /*
@@ -111,21 +111,19 @@ function main(){
             $searchtools = $('.comment-rankings>.search-topics, #ask-question');
             if (!this.expanded && this.value.length >= 8){
                 $(this).prop('expanded', true);
-                $('.nav-tabs').css({'clear': 'both','padding-top': '50px'});
+                $('.nav-tabs').css({'clear': 'both'});
                 $('.comment-rankings>h1').css({'position': 'absolute'});
                 $searchtools.animate({
-                    'margin-bottom': '-30px',
                     'margin-top': '50px'
                     }, 250, function () {
                     //The textarea has a transition css property already
                     //So it'll animate on its own.
-                    $textarea.css('width', '415px');
+                    $textarea.css({'width': '415px', 'margin-bottom': '30px'});
                 });
             } else if (this.expanded && this.value.length < 8) {
-                $(this).css({'width': ''});
+                $(this).css({'width': '', 'margin-bottom': ''});
                 $searchtools.delay(250).animate({
                     'margin-top': '0px',
-                    'margin-bottom': ''
                 }, 300);
                 $(this).prop('expanded', false);
             }
