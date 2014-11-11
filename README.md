@@ -19,11 +19,10 @@
 ##Installation instructions
 ###Chrome
 
-1. Save the script to your computer by right-clicking the script you want above and selecting "Save link as.."
-2. Open Chrome's extension tab by clicking Menu -> Tools -> Extensions
-3. Drag the saved file into Chrome's "Extensions" tab
-4. Click "Add"
-5. If necessary, reload the page you want the script to work on.
+1. Install the browser extension [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en)
+2. Left click on the script you want above
+3. Click Install
+4. Reload the Stack Exchange page, if necessary
 
 ###Firefox
 
