@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.6
+// @version      0.1.7
 // ==/UserScript==
 
 /*
@@ -40,7 +40,8 @@ function main(){
         ro: {'A':'ăâ', 'I':'î', 'S':'şș', 'T':'ţț'},
         hu: {'A':'á', 'E':'é', 'I':'í', 'O':'öóő', 'U':'üúű'},
         dn: {'E':'éë', 'I':'ï', 'O':'óö', 'U':'ü'},
-        tr: {'C':'ç', 'G':'ğ', 'I':'ıİ', 'O':'ö', 'S':'ş', 'U':'ü'}
+        tr: {'C':'ç', 'G':'ğ', 'I':'ıİ', 'O':'ö', 'S':'ş', 'U':'ü'},
+        da: {'A':'æå', 'O':'ø'},
         },
         taps = 0,
         last_press = [];
