@@ -6,12 +6,15 @@
     so that you never have to update again.
 * [Duolingo Mods (all scripts)](https://github.com/HodofHod/Userscripts/raw/master/duo-mods.user.js)
   * Loads all the below scripts, plus will become a place for me to put smaller mods. If you don't want all the scripts, you can disable whichever you like from the Duolingo Settings page. (Neat, huh?)
-* [Duolingo Lesson Review](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
+* [~~Duolingo Lesson Review~~](https://github.com/HodofHod/Userscripts/raw/master/duolingo-lesson-review.user.js)
   * Allows you to go back and review problems during lessons
+  * **NOTE: This userscript no longer works due to changes by Duolingo.** I have not been able to maintain it of late. Installing it will probably do nothing.
 * [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
   * Type special characters just by using alt. No need for alt codes, new keyboard layouts, or clicking
-* [Duolingo Comment Links Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
+  * This one still works, as of June 2016
+* [Duolingo Comment Links](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
   * Turns the timestamp into a direct link for every comment in Duolingo's Dicussions
+  * **NOTE: This userscript no longer works due to changes by Duolingo.**
 
 
 
