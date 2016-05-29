@@ -12,7 +12,7 @@
 * [Duolingo Easy Accents](https://github.com/HodofHod/Userscripts/raw/master/duo-easy-accents.user.js)
   * Type special characters just by using alt. No need for alt codes, new keyboard layouts, or clicking
   * This one still works, as of June 2016
-* [Duolingo Comment Links](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
+* [~~Duolingo Comment Links~~](https://github.com/HodofHod/Userscripts/raw/master/duo-comment-links.user.js)
   * Turns the timestamp into a direct link for every comment in Duolingo's Dicussions
   * **NOTE: This userscript no longer works due to changes by Duolingo.**
 
