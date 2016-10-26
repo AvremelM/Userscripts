@@ -3,7 +3,7 @@
 // @description  Makes typing characters with accents and diacritics easy! Just use the Alt key!
 // @match        *://www.duolingo.com/*
 // @author       @HodofHod
-// @version      0.1.9
+// @version      0.1.10
 // ==/UserScript==
 
 /*
@@ -32,7 +32,7 @@ function main(){
     console.log('Duo Easy Accents');
     var maps = {
         es: {'A':'á', 'E':'é', 'I':'í', 'O':'ó', 'U':'úü',                    // Spanish
-             'N':'ñ', '1':'¡', '!':'¡', '?':'¿'},
+             'N':'ñ', '1':'¡', '!':'¡', '?':'¿', '¿':'¿'},
         fr: {'A':'àâæ', 'E':'èéêë', 'I':'îï', 'O':'ôœ', 'U':'ùûü', 'C':'ç'},  // French
         pt: {'A':'ãáâà', 'E':'éê', 'I':'í', 'O':'õóô', 'U':'úü', 'C':'ç'},    // Portuguese 
         de: {'A':'ä', 'O':'ö', 'U':'ü', 'S':'ß'},                             // German
